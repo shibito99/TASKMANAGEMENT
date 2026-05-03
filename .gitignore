@@ -1,0 +1,17 @@
+# Maven ビルド成果物
+backend/target/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code 内部ファイル
+.claude/
