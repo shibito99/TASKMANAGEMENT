@@ -13,5 +13,8 @@ backend/target/
 .DS_Store
 Thumbs.db
 
+# 環境変数（パスワード等の機密情報）
+.env
+
 # Claude Code 内部ファイル
 .claude/
