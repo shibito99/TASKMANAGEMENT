@@ -1,6 +1,10 @@
 # Maven ビルド成果物
 backend/target/
 
+# Node.js
+frontend/node_modules/
+frontend/dist/
+
 # IntelliJ IDEA
 .idea/
 *.iml
