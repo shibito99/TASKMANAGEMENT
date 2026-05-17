@@ -1,7 +1,15 @@
 import { useState } from 'react'
-import type { Board } from '../types'
+import {
+  DndContext,
+  closestCorners,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+} from '@dnd-kit/core'
+import type { Board, Card } from '../types'
 import ListColumn from './ListColumn'
-import { createList, deleteList, createCard, deleteCard } from '../api/boards'
+import CardItem from './CardItem'
+import { createList, deleteList, createCard, deleteCard, updateCard } from '../api/boards'
 
 type Props = {
   board: Board
@@ -11,6 +19,7 @@ type Props = {
 export default function BoardView({ board, onRefresh }: Props) {
   const [addingList, setAddingList] = useState(false)
   const [listTitle, setListTitle] = useState('')
+  const [draggingCard, setDraggingCard] = useState<Card | null>(null)
 
   const handleAddList = async () => {
     if (!listTitle.trim()) return
@@ -37,7 +46,49 @@ export default function BoardView({ board, onRefresh }: Props) {
     onRefresh()
   }
 
+  const handleDragStart = ({ active }: DragStartEvent) => {
+    const cardId = parseInt((active.id as string).replace('card-', ''))
+    for (const list of board.lists) {
+      const card = list.cards.find(c => c.id === cardId)
+      if (card) { setDraggingCard(card); return }
+    }
+  }
+
+  const handleDragEnd = async ({ active, over }: DragEndEvent) => {
+    setDraggingCard(null)
+    if (!over || active.id === over.id) return
+
+    const cardId = parseInt((active.id as string).replace('card-', ''))
+    const overId = over.id as string
+
+    // ドロップ先のリストと位置を決定
+    let destListId: number
+    let newPosition: number
+
+    if (overId.startsWith('card-')) {
+      const overCardId = parseInt(overId.replace('card-', ''))
+      const destList = board.lists.find(l => l.cards.some(c => c.id === overCardId))
+      if (!destList) return
+      destListId = destList.id
+      newPosition = destList.cards.findIndex(c => c.id === overCardId)
+    } else if (overId.startsWith('list-')) {
+      destListId = parseInt(overId.replace('list-', ''))
+      const destList = board.lists.find(l => l.id === destListId)
+      newPosition = destList?.cards.length ?? 0
+    } else {
+      return
+    }
+
+    await updateCard(cardId, { listId: destListId, position: newPosition })
+    onRefresh()
+  }
+
   return (
+    <DndContext
+      collisionDetection={closestCorners}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
     <div className="flex items-start gap-3 p-4 overflow-x-auto flex-1 min-h-0">
       {board.lists.map(list => (
         <ListColumn
@@ -90,5 +141,15 @@ export default function BoardView({ board, onRefresh }: Props) {
         )}
       </div>
     </div>
+
+    {/* ドラッグ中のカードのゴースト表示 */}
+    <DragOverlay>
+      {draggingCard && (
+        <div className="rotate-2 opacity-90 w-64">
+          <CardItem card={draggingCard} listId={0} onDelete={() => {}} />
+        </div>
+      )}
+    </DragOverlay>
+    </DndContext>
   )
 }

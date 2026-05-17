@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useDroppable } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import type { BoardList } from '../types'
 import CardItem from './CardItem'
 
@@ -10,6 +12,7 @@ type Props = {
 }
 
 export default function ListColumn({ list, onDeleteList, onAddCard, onDeleteCard }: Props) {
+  const { setNodeRef, isOver } = useDroppable({ id: `list-${list.id}` })
   const [adding, setAdding] = useState(false)
   const [title, setTitle] = useState('')
   const [loading, setLoading] = useState(false)
@@ -38,14 +41,22 @@ export default function ListColumn({ list, onDeleteList, onAddCard, onDeleteCard
       </div>
 
       {/* カード一覧 */}
-      <div className="flex-1 overflow-y-auto px-2 flex flex-col gap-2 pb-2">
-        {list.cards.length === 0 && (
-          <p className="text-xs text-gray-400 text-center py-3">カードがありません</p>
-        )}
-        {list.cards.map(card => (
-          <CardItem key={card.id} card={card} onDelete={onDeleteCard} />
-        ))}
-      </div>
+      <SortableContext
+        items={list.cards.map(c => `card-${c.id}`)}
+        strategy={verticalListSortingStrategy}
+      >
+        <div
+          ref={setNodeRef}
+          className={`flex-1 overflow-y-auto px-2 flex flex-col gap-2 pb-2 min-h-12 rounded-lg transition-colors ${isOver ? 'bg-blue-50' : ''}`}
+        >
+          {list.cards.length === 0 && (
+            <p className="text-xs text-gray-400 text-center py-3">カードがありません</p>
+          )}
+          {list.cards.map(card => (
+            <CardItem key={card.id} card={card} listId={list.id} onDelete={onDeleteCard} />
+          ))}
+        </div>
+      </SortableContext>
 
       {/* カード追加エリア */}
       <div className="px-2 pb-2">
