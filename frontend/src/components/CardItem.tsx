@@ -1,7 +1,10 @@
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import type { Card } from '../types'
 
 type Props = {
   card: Card
+  listId: number
   onDelete: (cardId: number) => void
 }
 
@@ -11,11 +14,29 @@ const LABEL_STYLE: Record<string, string> = {
   '#22c55e': 'bg-green-100 text-green-700',
 }
 
-export default function CardItem({ card, onDelete }: Props) {
+export default function CardItem({ card, listId, onDelete }: Props) {
   const isOverdue = card.dueDate && card.dueDate < new Date().toISOString().split('T')[0]
 
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: `card-${card.id}`,
+    data: { type: 'card', listId },
+  })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+    cursor: isDragging ? 'grabbing' : 'grab',
+  }
+
   return (
-    <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`bg-white rounded-lg p-3 shadow-sm border border-gray-200 hover:shadow-md transition-shadow select-none ${isDragging ? 'ring-2 ring-blue-400' : ''}`}
+    >
       {/* ラベル */}
       {card.labels.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-2">
@@ -34,6 +55,7 @@ export default function CardItem({ card, onDelete }: Props) {
         <span className="text-sm text-gray-800 leading-snug break-words flex-1">{card.title}</span>
         <button
           onClick={() => onDelete(card.id)}
+          onPointerDown={e => e.stopPropagation()}
           className="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0 text-base leading-none"
           title="削除"
         >
