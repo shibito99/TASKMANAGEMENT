@@ -1,11 +1,6 @@
 import { useState } from 'react'
-import {
-  DndContext,
-  closestCorners,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-} from '@dnd-kit/core'
+import { DndContext, closestCorners, DragOverlay } from '@dnd-kit/core'
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import type { Board, Card } from '../types'
 import ListColumn from './ListColumn'
 import CardItem from './CardItem'
