@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(winget uninstall PostgreSQL.PostgreSQL.17 --accept-source-agreements 2>&1)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "statusMessage": "ポート競合を確認中...",
+            "command": "try{$j=[Console]::In.ReadToEnd()|ConvertFrom-Json;$c=$j.tool_input.command;if($null -ne $c -and $c -match 'spring-boot:run'){$p=(Get-NetTCPConnection -LocalPort 8080 -State Listen -EA SilentlyContinue).OwningProcess;if($p){Stop-Process -Id $p -Force -EA SilentlyContinue}};if($null -ne $c -and $c -match 'npm run dev'){$p=(Get-NetTCPConnection -LocalPort 5173 -State Listen -EA SilentlyContinue).OwningProcess;if($p){Stop-Process -Id $p -Force -EA SilentlyContinue}}}catch{}"
+          }
+        ]
+      }
+    ]
+  }
+}

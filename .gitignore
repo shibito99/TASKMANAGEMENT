@@ -20,5 +20,6 @@ Thumbs.db
 # 環境変数（パスワード等の機密情報）
 .env
 
-# Claude Code 内部ファイル
+# Claude Code 内部ファイル（settings.json はチーム共有のため追跡する）
 .claude/
+!.claude/settings.json

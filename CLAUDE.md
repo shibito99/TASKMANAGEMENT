@@ -68,6 +68,37 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 
 ---
 
+## サーバー起動ルール（厳守）
+
+### ポート定義
+
+| サーバー | ポート | 固定 |
+|---|---|---|
+| バックエンド（Spring Boot） | `8080` | 変更禁止 |
+| フロントエンド（Vite） | `5173` | 変更禁止 |
+
+### 起動前のポート解放（必須）
+
+サーバーを起動する前に、**必ずそのポートを使用中のプロセスを終了させてから起動する**。  
+ポートが空いていれば何もしない（エラーにならない）。
+
+```powershell
+# ポート 8080 を解放
+$p = (Get-NetTCPConnection -LocalPort 8080 -State Listen -ErrorAction SilentlyContinue).OwningProcess
+if ($p) { Stop-Process -Id $p -Force -ErrorAction SilentlyContinue }
+
+# ポート 5173 を解放
+$p = (Get-NetTCPConnection -LocalPort 5173 -State Listen -ErrorAction SilentlyContinue).OwningProcess
+if ($p) { Stop-Process -Id $p -Force -ErrorAction SilentlyContinue }
+```
+
+> **Claude Code フック設定済み（`.claude/settings.json`）：**  
+> `spring-boot:run` または `npm run dev` を含むコマンドを実行する直前に、  
+> 対象ポートのプロセスを自動終了する `PreToolUse` フックが登録されている。  
+> 手動でコマンドを実行するときも上記 PowerShell を先に実行すること。
+
+---
+
 ## DB 起動コマンド
 
 ```bash
@@ -82,4 +113,14 @@ docker compose up -d
 ```bash
 cd backend
 mvn spring-boot:run
+```
+
+---
+
+## フロントエンド起動コマンド
+
+```bash
+cd frontend
+npm run dev
+# → http://localhost:5173
 ```
