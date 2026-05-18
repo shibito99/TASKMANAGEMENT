@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
-import { DndContext, closestCorners, DragOverlay } from '@dnd-kit/core'
+import {
+  DndContext, closestCorners, DragOverlay,
+  MouseSensor, TouchSensor, useSensor, useSensors,
+} from '@dnd-kit/core'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import type { Board, Card, Label } from '../types'
 import ListColumn from './ListColumn'
@@ -13,6 +16,12 @@ type Props = {
 }
 
 export default function BoardView({ board, onRefresh }: Props) {
+  // 5px 以上動かさないとドラッグ開始しない → クリックで onClick が正常発火する
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor,  { activationConstraint: { delay: 250, tolerance: 5 } }),
+  )
+
   const [addingList, setAddingList] = useState(false)
   const [listTitle, setListTitle] = useState('')
   const [draggingCard, setDraggingCard] = useState<Card | null>(null)
@@ -114,6 +123,7 @@ export default function BoardView({ board, onRefresh }: Props) {
   return (
     <>
       <DndContext
+        sensors={sensors}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
