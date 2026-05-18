@@ -5,7 +5,7 @@ import type { Board, Card, Label } from '../types'
 import ListColumn from './ListColumn'
 import CardItem from './CardItem'
 import CardModal from './CardModal'
-import { createList, deleteList, createCard, deleteCard, updateCard, getLabels } from '../api/boards'
+import { createList, deleteList, updateList, createCard, deleteCard, updateCard, getLabels } from '../api/boards'
 
 type Props = {
   board: Board
@@ -35,6 +35,31 @@ export default function BoardView({ board, onRefresh }: Props) {
   const handleDeleteList = async (listId: number) => {
     if (!confirm('このリストとカードをすべて削除しますか？')) return
     await deleteList(listId)
+    onRefresh()
+  }
+
+  const handleUpdateList = async (listId: number, title: string) => {
+    await updateList(listId, { title })
+    onRefresh()
+  }
+
+  const LABEL_PRIORITY: Record<string, number> = { '#ef4444': 1, '#f59e0b': 2, '#22c55e': 3 }
+
+  const handleSort = async (listId: number, type: 'priority' | 'due') => {
+    const list = board.lists.find(l => l.id === listId)
+    if (!list) return
+    const sorted = [...list.cards].sort((a, b) => {
+      if (type === 'priority') {
+        const pa = a.labels.length > 0 ? (LABEL_PRIORITY[a.labels[0].color] ?? 4) : 4
+        const pb = b.labels.length > 0 ? (LABEL_PRIORITY[b.labels[0].color] ?? 4) : 4
+        return pa - pb
+      }
+      if (!a.dueDate && !b.dueDate) return 0
+      if (!a.dueDate) return 1
+      if (!b.dueDate) return -1
+      return a.dueDate.localeCompare(b.dueDate)
+    })
+    await Promise.all(sorted.map((card, index) => updateCard(card.id, { position: index })))
     onRefresh()
   }
 
@@ -99,9 +124,11 @@ export default function BoardView({ board, onRefresh }: Props) {
               key={list.id}
               list={list}
               onDeleteList={handleDeleteList}
+              onUpdateList={handleUpdateList}
               onAddCard={handleAddCard}
               onDeleteCard={handleDeleteCard}
               onOpenModal={handleOpenModal}
+              onSort={handleSort}
             />
           ))}
 
