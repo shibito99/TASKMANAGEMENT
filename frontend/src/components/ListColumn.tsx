@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import type { BoardList } from '../types'
+import type { BoardList, Card } from '../types'
 import CardItem from './CardItem'
 
 type Props = {
@@ -9,9 +9,10 @@ type Props = {
   onDeleteList: (listId: number) => void
   onAddCard: (listId: number, title: string) => Promise<void>
   onDeleteCard: (cardId: number) => void
+  onOpenModal: (card: Card) => void
 }
 
-export default function ListColumn({ list, onDeleteList, onAddCard, onDeleteCard }: Props) {
+export default function ListColumn({ list, onDeleteList, onAddCard, onDeleteCard, onOpenModal }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: `list-${list.id}` })
   const [adding, setAdding] = useState(false)
   const [title, setTitle] = useState('')
@@ -53,7 +54,7 @@ export default function ListColumn({ list, onDeleteList, onAddCard, onDeleteCard
             <p className="text-xs text-gray-400 text-center py-3">カードがありません</p>
           )}
           {list.cards.map(card => (
-            <CardItem key={card.id} card={card} listId={list.id} onDelete={onDeleteCard} />
+            <CardItem key={card.id} card={card} listId={list.id} onDelete={onDeleteCard} onOpenModal={onOpenModal} />
           ))}
         </div>
       </SortableContext>

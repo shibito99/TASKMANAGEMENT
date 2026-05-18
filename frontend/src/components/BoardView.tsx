@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { DndContext, closestCorners, DragOverlay } from '@dnd-kit/core'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
-import type { Board, Card } from '../types'
+import type { Board, Card, Label } from '../types'
 import ListColumn from './ListColumn'
 import CardItem from './CardItem'
-import { createList, deleteList, createCard, deleteCard, updateCard } from '../api/boards'
+import CardModal from './CardModal'
+import { createList, deleteList, createCard, deleteCard, updateCard, getLabels } from '../api/boards'
 
 type Props = {
   board: Board
@@ -15,6 +16,13 @@ export default function BoardView({ board, onRefresh }: Props) {
   const [addingList, setAddingList] = useState(false)
   const [listTitle, setListTitle] = useState('')
   const [draggingCard, setDraggingCard] = useState<Card | null>(null)
+  const [modalCard, setModalCard] = useState<Card | null>(null)
+  const [allLabels, setAllLabels] = useState<Label[]>([])
+
+  useEffect(() => { getLabels().then(setAllLabels) }, [])
+
+  const handleOpenModal = (card: Card) => setModalCard(card)
+  const handleCloseModal = () => setModalCard(null)
 
   const handleAddList = async () => {
     if (!listTitle.trim()) return
@@ -79,72 +87,86 @@ export default function BoardView({ board, onRefresh }: Props) {
   }
 
   return (
-    <DndContext
-      collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-    <div className="flex items-start gap-3 p-4 overflow-x-auto flex-1 min-h-0">
-      {board.lists.map(list => (
-        <ListColumn
-          key={list.id}
-          list={list}
-          onDeleteList={handleDeleteList}
-          onAddCard={handleAddCard}
-          onDeleteCard={handleDeleteCard}
-        />
-      ))}
-
-      {/* リスト追加 */}
-      <div className="min-w-60 flex-shrink-0">
-        {addingList ? (
-          <div className="bg-gray-100 rounded-xl p-2 flex flex-col gap-2">
-            <input
-              type="text"
-              className="w-full rounded-md border-2 border-blue-400 px-2 py-1.5 text-sm outline-none"
-              placeholder="リスト名を入力…"
-              value={listTitle}
-              onChange={e => setListTitle(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') handleAddList()
-                if (e.key === 'Escape') { setAddingList(false); setListTitle('') }
-              }}
-              autoFocus
+    <>
+      <DndContext
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex items-start gap-3 p-4 overflow-x-auto flex-1 min-h-0">
+          {board.lists.map(list => (
+            <ListColumn
+              key={list.id}
+              list={list}
+              onDeleteList={handleDeleteList}
+              onAddCard={handleAddCard}
+              onDeleteCard={handleDeleteCard}
+              onOpenModal={handleOpenModal}
             />
-            <div className="flex gap-1.5">
-              <button
-                onClick={handleAddList}
-                className="bg-blue-600 text-white text-sm font-semibold px-3 py-1 rounded-md hover:bg-blue-700"
-              >
-                追加
-              </button>
-              <button
-                onClick={() => { setAddingList(false); setListTitle('') }}
-                className="text-gray-500 hover:text-gray-700 text-lg leading-none px-1"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={() => setAddingList(true)}
-            className="w-full bg-white/25 hover:bg-white/35 text-white font-semibold text-sm px-4 py-3 rounded-xl transition-colors text-left"
-          >
-            ＋ リスト追加
-          </button>
-        )}
-      </div>
-    </div>
+          ))}
 
-    {/* ドラッグ中のカードのゴースト表示 */}
-    <DragOverlay>
-      {draggingCard && (
-        <div className="rotate-2 opacity-90 w-64">
-          <CardItem card={draggingCard} listId={0} onDelete={() => {}} />
+          {/* リスト追加 */}
+          <div className="min-w-60 flex-shrink-0">
+            {addingList ? (
+              <div className="bg-gray-100 rounded-xl p-2 flex flex-col gap-2">
+                <input
+                  type="text"
+                  className="w-full rounded-md border-2 border-blue-400 px-2 py-1.5 text-sm outline-none"
+                  placeholder="リスト名を入力…"
+                  value={listTitle}
+                  onChange={e => setListTitle(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') handleAddList()
+                    if (e.key === 'Escape') { setAddingList(false); setListTitle('') }
+                  }}
+                  autoFocus
+                />
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={handleAddList}
+                    className="bg-blue-600 text-white text-sm font-semibold px-3 py-1 rounded-md hover:bg-blue-700"
+                  >
+                    追加
+                  </button>
+                  <button
+                    onClick={() => { setAddingList(false); setListTitle('') }}
+                    className="text-gray-500 hover:text-gray-700 text-lg leading-none px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setAddingList(true)}
+                className="w-full bg-white/25 hover:bg-white/35 text-white font-semibold text-sm px-4 py-3 rounded-xl transition-colors text-left"
+              >
+                ＋ リスト追加
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* ドラッグ中のカードのゴースト表示 */}
+        <DragOverlay>
+          {draggingCard && (
+            <div className="rotate-2 opacity-90 w-64">
+              <CardItem card={draggingCard} listId={0} onDelete={() => {}} onOpenModal={() => {}} />
+            </div>
+          )}
+        </DragOverlay>
+      </DndContext>
+
+      {/* カード詳細モーダル */}
+      {modalCard && (
+        <CardModal
+          card={modalCard}
+          listTitle={board.lists.find(l => l.cards.some(c => c.id === modalCard.id))?.title ?? ''}
+          allLabels={allLabels}
+          onClose={handleCloseModal}
+          onRefresh={onRefresh}
+        />
       )}
-    </DragOverlay>
-    </DndContext>
+    </>
   )
 }
