@@ -1,5 +1,14 @@
 import api from './client'
-import type { Board, BoardSummary } from '../types'
+import type { Board, BoardSummary, Label } from '../types'
+
+export const getLabels = () =>
+  api.get<Label[]>('/labels').then(r => r.data)
+
+export const attachLabel = (cardId: number, labelId: number) =>
+  api.post(`/cards/${cardId}/labels/${labelId}`)
+
+export const detachLabel = (cardId: number, labelId: number) =>
+  api.delete(`/cards/${cardId}/labels/${labelId}`)
 
 export const getBoards = () =>
   api.get<BoardSummary[]>('/boards').then(r => r.data)

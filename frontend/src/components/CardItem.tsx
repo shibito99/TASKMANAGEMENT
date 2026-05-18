@@ -6,6 +6,7 @@ type Props = {
   card: Card
   listId: number
   onDelete: (cardId: number) => void
+  onOpenModal: (card: Card) => void
 }
 
 const LABEL_STYLE: Record<string, string> = {
@@ -14,7 +15,7 @@ const LABEL_STYLE: Record<string, string> = {
   '#22c55e': 'bg-green-100 text-green-700',
 }
 
-export default function CardItem({ card, listId, onDelete }: Props) {
+export default function CardItem({ card, listId, onDelete, onOpenModal }: Props) {
   const isOverdue = card.dueDate && card.dueDate < new Date().toISOString().split('T')[0]
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -35,6 +36,7 @@ export default function CardItem({ card, listId, onDelete }: Props) {
       style={style}
       {...attributes}
       {...listeners}
+      onClick={() => { if (!isDragging) onOpenModal(card) }}
       className={`bg-white rounded-lg p-3 shadow-sm border border-gray-200 hover:shadow-md transition-shadow select-none ${isDragging ? 'ring-2 ring-blue-400' : ''}`}
     >
       {/* ラベル */}
