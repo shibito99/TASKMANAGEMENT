@@ -9,17 +9,13 @@ export default function App() {
   const [board, setBoard] = useState<Board | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchBoard = useCallback(async () => {
-    try {
-      const data = await getBoard(BOARD_ID)
-      setBoard(data)
-      setError(null)
-    } catch {
-      setError('バックエンドに接続できません。Spring Boot が起動しているか確認してください。')
-    }
-  }, [])
+  const fetchBoard = useCallback(() =>
+    getBoard(BOARD_ID)
+      .then(data => { setBoard(data); setError(null) })
+      .catch(() => setError('バックエンドに接続できません。Spring Boot が起動しているか確認してください。'))
+  , [])
 
-  useEffect(() => { fetchBoard() }, [fetchBoard])
+  useEffect(() => { void fetchBoard() }, [fetchBoard])
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 50%, #1e88e5 100%)' }}>
