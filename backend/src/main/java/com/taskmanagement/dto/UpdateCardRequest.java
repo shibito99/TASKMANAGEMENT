@@ -1,11 +1,11 @@
 package com.taskmanagement.dto;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record UpdateCardRequest(
         String title,
         String description,
-        LocalDate dueDate,
+        LocalDateTime dueDate,
         Integer position,
         Long listId
 ) {}
