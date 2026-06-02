@@ -13,7 +13,9 @@ type Props = {
 export default function CardModal({ card, listTitle, allLabels, onClose, onRefresh }: Props) {
   const [title, setTitle] = useState(card.title)
   const [description, setDescription] = useState(card.description ?? '')
-  const [dueDate, setDueDate] = useState(card.dueDate ?? '')
+  const [dueDate, setDueDate] = useState(
+    card.dueDate ? card.dueDate.slice(0, 16) : ''
+  )
   // 現在付いているラベルの id（1つのみ選択、なしは null）
   const [selectedLabelId, setSelectedLabelId] = useState<number | null>(
     card.labels.length > 0 ? card.labels[0].id : null
@@ -115,13 +117,13 @@ export default function CardModal({ card, listTitle, allLabels, onClose, onRefre
             />
           </div>
 
-          {/* 期限日 */}
+          {/* 期限日時 */}
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
-              期限日
+              期限日時
             </label>
             <input
-              type="date"
+              type="datetime-local"
               value={dueDate}
               onChange={e => setDueDate(e.target.value)}
               className="border-2 border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-blue-400 transition-colors bg-white"

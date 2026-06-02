@@ -15,7 +15,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -54,13 +54,13 @@ public class DataInitializer {
         BoardList done       = saveList(board, "✅ Done",          2);
 
         // ===== To Do のカード =====
-        saveCard(todo, "デザインの修正",        "トップページのバナーを修正する",   LocalDate.of(2026, 5, 10), 0, List.of(urgent));
-        saveCard(todo, "仕様書のレビュー",       "",                                 LocalDate.of(2026, 5, 8),  1, List.of(medium));
-        saveCard(todo, "APIエンドポイント設計", "",                                  null,                      2, List.of());
+        saveCard(todo, "デザインの修正",        "トップページのバナーを修正する",   LocalDateTime.of(2026, 5, 10, 18, 0), 0, List.of(urgent));
+        saveCard(todo, "仕様書のレビュー",       "",                                 LocalDateTime.of(2026, 5, 8, 12, 0),  1, List.of(medium));
+        saveCard(todo, "APIエンドポイント設計", "",                                  null,                                 2, List.of());
 
         // ===== In Progress のカード =====
-        saveCard(inProgress, "ログイン画面の実装",  "React + Tailwind で実装",      LocalDate.of(2026, 4, 30), 0, List.of(urgent));
-        saveCard(inProgress, "データベース設計",    "ER図をもとにSQLite設定",       null,                      1, List.of(medium));
+        saveCard(inProgress, "ログイン画面の実装",  "React + Tailwind で実装",      LocalDateTime.of(2026, 4, 30, 23, 59), 0, List.of(urgent));
+        saveCard(inProgress, "データベース設計",    "ER図をもとにSQLite設定",       null,                                  1, List.of(medium));
 
         // ===== Done のカード =====
         saveCard(done, "要件定義書の作成",   "", null, 0, List.of(low));
@@ -85,7 +85,7 @@ public class DataInitializer {
     }
 
     private void saveCard(BoardList list, String title, String description,
-                          LocalDate dueDate, int position, List<Label> labels) {
+                          LocalDateTime dueDate, int position, List<Label> labels) {
         Card card = new Card();
         card.setList(list);
         card.setTitle(title);

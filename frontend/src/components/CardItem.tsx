@@ -16,7 +16,7 @@ const LABEL_STYLE: Record<string, string> = {
 }
 
 export default function CardItem({ card, listId, onDelete, onOpenModal }: Props) {
-  const isOverdue = card.dueDate && card.dueDate < new Date().toISOString().split('T')[0]
+  const isOverdue = card.dueDate && new Date(card.dueDate) < new Date()
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `card-${card.id}`,
@@ -37,7 +37,7 @@ export default function CardItem({ card, listId, onDelete, onOpenModal }: Props)
       {...attributes}
       {...listeners}
       onClick={() => { if (!isDragging) onOpenModal(card) }}
-      className={`bg-white rounded-lg p-3 shadow-sm border border-gray-200 hover:shadow-md transition-shadow select-none ${isDragging ? 'ring-2 ring-blue-400' : ''}`}
+      className={`group bg-white rounded-lg p-3 shadow-sm border border-gray-200 hover:shadow-md transition-shadow select-none ${isDragging ? 'ring-2 ring-blue-400' : ''}`}
     >
       {/* ラベル */}
       {card.labels.length > 0 && (
@@ -58,17 +58,22 @@ export default function CardItem({ card, listId, onDelete, onOpenModal }: Props)
         <button
           onClick={() => onDelete(card.id)}
           onPointerDown={e => e.stopPropagation()}
-          className="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0 text-base leading-none"
+          className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded p-0.5 transition-all flex-shrink-0"
           title="削除"
         >
-          ✕
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+            <path d="M10 11v6M14 11v6" />
+            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+          </svg>
         </button>
       </div>
 
       {/* 期限日 */}
       {card.dueDate && (
         <div className={`mt-1.5 text-xs font-medium ${isOverdue ? 'text-red-500' : 'text-gray-400'}`}>
-          📅 {card.dueDate}{isOverdue ? ' 期限切れ' : ''}
+          📅 {new Date(card.dueDate).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}{isOverdue ? ' 期限切れ' : ''}
         </div>
       )}
     </div>
